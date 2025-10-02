@@ -1,0 +1,10 @@
+build/
+install/
+log/
+*.db
+*.so
+*.o
+*.bin
+*.bag
+*.pgm
+*.yaml
