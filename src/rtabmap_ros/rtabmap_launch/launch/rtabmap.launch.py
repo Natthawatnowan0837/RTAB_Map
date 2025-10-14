@@ -1,8 +1,3 @@
-#
-# To avoid log buffering:
-# "stdbuf -o L ros2 launch rtabmap_launch rtabmap.launch.py ..."
-#
-
 import os
 
 from launch import LaunchDescription, Substitution, LaunchContext
