@@ -71,7 +71,10 @@ class Voice_processor(Node):
             self.pub_pos.publish(pos_msg)
 
             self.get_logger().info(f"Published position: {pos_msg.data}")
-
+            
+            if room:
+                os.system(f'espeak -vth "{room}" 2>/dev/null')
+                
         except Exception as e:
             self.get_logger().error(f"Error processing voice command: {e}")
 

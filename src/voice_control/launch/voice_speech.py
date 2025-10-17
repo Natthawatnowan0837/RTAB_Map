@@ -6,10 +6,12 @@ import os
 import soundfile as sf
 import numpy as np
 import sounddevice as sd
+import playsound
 from rclpy.node import Node
 from std_msgs.msg import String
 from ament_index_python.packages import get_package_share_directory
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
+from gtts import gTTS
 
 # ----------------------------
 #  โหลดโมเดล Whisper
@@ -40,6 +42,9 @@ class Voice_speech(Node):
         # Publisher สำหรับส่ง action, room
         self.pub_cmd = self.create_publisher(String, '/voice_cmd', 10)
 
+        # พูดเมื่อเริ่มต้นทำงาน
+        self.speak("ต้องการให้ฉันขนของไปห้องไหนครับ")
+
         # Timer สำหรับฟังเสียงทุก 5 วินาที
         self.timer = self.create_timer(5.0, self.timer_callback)
         self.get_logger().info("voice_speech node is running...")
@@ -53,6 +58,16 @@ class Voice_speech(Node):
         recording = sd.rec(int(fs * 5), samplerate=fs, channels=1, dtype='float32')
         sd.wait()
         sf.write(filename, recording, fs)
+
+    # ----------------------------
+    #  ฟังก์ชันพูด (ใช้ gTTS)
+    # ----------------------------
+    def speak(self, text, lang="th"):
+        if not text:
+            return
+        tts = gTTS(text=text, lang=lang)
+        tts.save("voice_feedback.mp3")
+        playsound.playsound("voice_feedback.mp3")
 
     # ----------------------------
     #  ฟังก์ชันฟังเสียงและแปลงเป็นข้อความ
@@ -110,6 +125,21 @@ class Voice_speech(Node):
 
         self.pub_cmd.publish(msg)
         self.get_logger().info(f"Published voice command: {msg.data}")
+
+        # ----------------------------
+        #  ตอบกลับด้วยเสียง
+        # ----------------------------
+        if action and room:
+            # ดึงชื่อห้องจาก response
+            room_response = rooms_dict[room]["response"]
+            self.speak(f"ฉันกำลังไปห้อง{room_response}")
+        elif action:
+            self.speak(f"{action}")
+        elif room:
+            room_response = rooms_dict[room]["response"]
+            self.speak(f"คำสั่งในห้อง{room_response}")
+        else:
+            self.speak("ไม่เข้าใจคำสั่ง")
 
 
 def main(args=None):
